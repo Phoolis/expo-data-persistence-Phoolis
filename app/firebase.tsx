@@ -1,18 +1,23 @@
 import { database } from "@/firebaseConfig";
 import { Paragraph, Screen, Title } from "@/utils/components";
 import { styles } from "@/utils/styles";
-import { onValue, push, ref } from "firebase/database";
+import { onValue, push, ref, set } from "firebase/database";
 import { useEffect, useState } from "react";
-import { Button, FlatList, Text, TextInput } from "react-native";
+import { Button, FlatList, Text, TextInput, View } from "react-native";
 
-type Product = { title: string; amount: string };
+type Product = { title: string; amount: string; id: string };
 
 export default function Index() {
   const [product, setProduct] = useState({ title: "", amount: "" });
   const [items, setItems] = useState<Product[]>([]);
 
   const handleSave = () => {
-    push(ref(database, "items/"), product);
+    const newProductRef = push(ref(database, "items/")); // Create a new reference
+    set(newProductRef, { ...product, id: newProductRef.key }); // Set the value
+  };
+
+  const handleDelete = (id: string) => {
+    set(ref(database, `items/${id}`), null);
   };
 
   useEffect(() => {
@@ -55,10 +60,27 @@ export default function Index() {
       <Button onPress={handleSave} title="Save" />
 
       <FlatList
+        ListHeaderComponent={() => (
+          <Text style={styles.title}>Shopping List</Text>
+        )}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <Text style={{ fontSize: 18 }}>
-            {item.title}, {item.amount}
-          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "flex-start",
+            }}
+          >
+            <Text>
+              {item.title}, {item.amount}{" "}
+            </Text>
+            <Text
+              style={{ color: "blue" }}
+              onPress={() => handleDelete(item.id)}
+            >
+              Delete
+            </Text>
+          </View>
         )}
         data={items}
       />
