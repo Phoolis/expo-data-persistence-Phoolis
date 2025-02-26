@@ -18,7 +18,7 @@ export default function Index() {
   useEffect(() => {
     onValue(ref(database, "items/"), (snapshot) => {
       const data = snapshot.val();
-      if (!data) return;
+      if (!data) return; // No data in Firebase
       const firebaseItems = Object.values(data);
       setItems(firebaseItems as Product[]);
     });
